@@ -1,4 +1,5 @@
 import os
+import multiprocessing
 from typing import BinaryIO
 
 
@@ -50,13 +51,28 @@ def find_chunk_boundaries(
 
 
 # ## Usage
-# with open(..., "rb") as f:
+# file_path = "..."  # Replace with the actual file path
+# with open(file_path, "rb") as f:
 #     num_processes = 4
 #     boundaries = find_chunk_boundaries(f, num_processes, b"<|endoftext|>")
 
-#     # The following is a serial implementation, but you can parallelize this
-#     # by sending each start/end pair to a set of processes.
-#     for start, end in zip(boundaries[:-1], boundaries[1:]):
-#         f.seek(start)
-#         chunk = f.read(end - start).decode("utf-8", errors="ignore")
-#         # Run pre-tokenization on your chunk and store the counts for each pre-token
+#     def process_chunk(start_end):
+#         start, end = start_end
+#         with open(file_path, "rb") as f2:
+#             f2.seek(start)
+#             chunk = f2.read(end - start).decode("utf-8", errors="ignore")
+#             # Run pre-tokenization on your chunk and return the counts
+#             # For example, count pre-tokens
+#             counts = {}  # Placeholder: implement your pre-tokenization logic here
+#             return counts
+
+#     pairs = list(zip(boundaries[:-1], boundaries[1:]))
+#     with multiprocessing.Pool(processes=num_processes) as pool:
+#         results = pool.map(process_chunk, pairs)
+
+#     # Combine the results from all chunks
+#     # For example, if counts are dictionaries, merge them
+#     all_counts = {}
+#     for res in results:
+#         for key, val in res.items():
+#             all_counts[key] = all_counts.get(key, 0) + val
