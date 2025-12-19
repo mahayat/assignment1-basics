@@ -11,7 +11,8 @@ class TrainBPE:
         self.special_tokens = special_tokens
 
         self.PAT = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
-        self.NUM_PROCESSES = cpu_count()
+        self.compiled_pat = re.compile(self.PAT)
+        self.NUM_PROCESSES = 16 #cpu_count()
         self.SPLIT_TOKEN = "<|endoftext|>" 
     
     @property
@@ -24,7 +25,9 @@ class TrainBPE:
         return re.split(pattern, chunk) # get list of stories
             
     def get_pretokens(self, stories):
-        return [token for story in stories for token in re.findall(self.PAT, story)]
+        # return [token for story in stories for token in re.findall(self.PAT, story)]
+        return [token for story in stories for token in self.compiled_pat.findall(story)]
+        
 
     def get_pretoken_bytes(self, pretokens):
         return [pretoken.encode('utf-8') for pretoken in pretokens]

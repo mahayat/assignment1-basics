@@ -8,3 +8,6 @@
 - `uv run python -V` #Python 3.13.11
 - `uv run pytest`
 - `uv add --dev ipykernel`
+
+### Tests
+- `uv run pytest ./tests/test_train_bpe.py`
