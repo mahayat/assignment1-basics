@@ -590,6 +590,10 @@ def run_train_bpe(
                 Merges are ordered by order of creation.
     """
     # raise NotImplementedError
-    from ..cs336_basics.tobenamed import TrainBPE
+    import os
+    import sys
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    from cs336_basics.tobenamed import TrainBPE
+    
     trainer = TrainBPE(input_path, vocab_size, special_tokens)
     return trainer.train_bpe()
