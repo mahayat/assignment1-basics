@@ -100,7 +100,7 @@ class TrainBPE:
             print(f'merge_num: {merge_num}, most_frequent_pair: {most_frequent_pair}, new_token: {new_token}')
 
             vocab[next_id] = new_token
-            merges.append(most_frequent_pair)
+            merges.append((vocab[byte1], vocab[byte2]))
             pretoken_bytes = self.apply_merge(pretoken_bytes, most_frequent_pair, next_id)
             next_id += 1
         return vocab, merges
