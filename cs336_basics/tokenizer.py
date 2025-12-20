@@ -47,8 +47,10 @@ class Tokenizer:
         self.merge_priority = {pair: i for i, pair in enumerate(merges)}
         
         # Compile special token pattern for splitting
+        # Sort special tokens by length (longest first) to handle overlapping tokens
         if self.special_tokens:
-            special_pattern = '|'.join(re.escape(token) for token in self.special_tokens)
+            sorted_tokens = sorted(self.special_tokens, key=len, reverse=True)
+            special_pattern = '|'.join(re.escape(token) for token in sorted_tokens)
             self.special_pattern = re.compile(f'({special_pattern})')
         else:
             self.special_pattern = None
@@ -173,42 +175,69 @@ class Tokenizer:
         
         token_ids = []
         
-        # Split on special tokens first
+        # Split on special tokens first if they exist
         if self.special_pattern:
-            chunks = self.special_pattern.split(text)
-        else:
-            chunks = [text]
-        
-        for chunk in chunks:
-            if not chunk:
-                continue
-            
-            # Check if this chunk is a special token
-            if chunk in self.special_tokens:
-                token_bytes = chunk.encode('utf-8')
-                token_id = self.inverse_vocab[token_bytes]
-                token_ids.append(token_id)
-                continue
-            
-            # Pre-tokenize the chunk
-            for match in re.finditer(PAT, chunk):
-                word = match.group()
+            # Use finditer to get both special tokens and text between them
+            last_end = 0
+            for match in self.special_pattern.finditer(text):
+                # Process text before this special token
+                if match.start() > last_end:
+                    chunk = text[last_end:match.start()]
+                    token_ids.extend(self._encode_chunk(chunk))
                 
-                # Convert to list of individual byte objects
-                word_bytes = [bytes([b]) for b in word.encode('utf-8')]
-                
-                # Apply BPE merges
-                merged_bytes = self._apply_merges(word_bytes)
-                
-                # Convert to token IDs
-                for token_bytes in merged_bytes:
+                # Process the special token itself
+                special_token = match.group()
+                if special_token in self.special_tokens:
+                    token_bytes = special_token.encode('utf-8')
                     if token_bytes in self.inverse_vocab:
                         token_ids.append(self.inverse_vocab[token_bytes])
-                    else:
-                        # This shouldn't happen if vocab is complete
-                        # Fall back to individual bytes
-                        for b in token_bytes:
-                            token_ids.append(b)
+                
+                last_end = match.end()
+            
+            # Process any remaining text after the last special token
+            if last_end < len(text):
+                chunk = text[last_end:]
+                token_ids.extend(self._encode_chunk(chunk))
+        else:
+            # No special tokens, encode the whole text
+            token_ids.extend(self._encode_chunk(text))
+        
+        return token_ids
+    
+    def _encode_chunk(self, text: str) -> List[int]:
+        """
+        Encode a chunk of text (no special tokens).
+        
+        Args:
+            text: Text chunk to encode
+        
+        Returns:
+            List of token IDs
+        """
+        if not text:
+            return []
+        
+        token_ids = []
+        
+        # Pre-tokenize the chunk
+        for match in re.finditer(PAT, text):
+            word = match.group()
+            
+            # Convert to list of individual byte objects
+            word_bytes = [bytes([b]) for b in word.encode('utf-8')]
+            
+            # Apply BPE merges
+            merged_bytes = self._apply_merges(word_bytes)
+            
+            # Convert to token IDs
+            for token_bytes in merged_bytes:
+                if token_bytes in self.inverse_vocab:
+                    token_ids.append(self.inverse_vocab[token_bytes])
+                else:
+                    # This shouldn't happen if vocab is complete
+                    # Fall back to individual bytes
+                    for b in token_bytes:
+                        token_ids.append(b)
         
         return token_ids
     
