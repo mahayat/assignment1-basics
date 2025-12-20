@@ -10,4 +10,5 @@
 - `uv add --dev ipykernel`
 
 ### Tests
-- `uv run pytest ./tests/test_train_bpe.py`
+- `uv run pytest tests/test_train_bpe.py > test_results/test_train_bpe_results.txt`
+- `uv run pytest tests/test_tokenizer.py > test_results/test_tokenizer_results.txt`

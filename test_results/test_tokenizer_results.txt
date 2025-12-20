@@ -31,4 +31,4 @@ tests/test_tokenizer.py::test_encode_iterable_tinystories_matches_tiktoken PASSE
 tests/test_tokenizer.py::test_encode_iterable_memory_usage SKIPPED (...)
 tests/test_tokenizer.py::test_encode_memory_usage SKIPPED (rlimit su...)
 
-======================== 23 passed, 2 skipped in 1.77s =========================
+======================== 23 passed, 2 skipped in 1.80s =========================
